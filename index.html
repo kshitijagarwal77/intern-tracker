@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>InternTrack — Internship Prep Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<header class="navbar">
+  <div class="nav-brand">
+    <div class="brand-logo">IT</div>
+    <span class="brand-name">InternTrack</span>
+  </div>
+  <nav class="nav-tabs">
+    <button class="tab active" data-tab="dsa">⬡ DSA Tracker</button>
+    <button class="tab" data-tab="contests">🏆 Contests</button>
+    <button class="tab" data-tab="pipeline">📋 Pipeline</button>
+    <button class="tab" data-tab="notes">📝 Notes</button>
+  </nav>
+  <div class="nav-user">
+    <div class="avatar">KA</div>
+    <span class="user-name">Kshitij Agarwal</span>
+  </div>
+</header>
+
+<!-- ════════════════════════════════ DSA TAB -->
+<div id="tab-dsa" class="tab-panel active">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">DSA Tracker</h1>
+      <p class="page-sub" id="dsa-sub">Loading...</p>
+    </div>
+    <button class="btn-primary" onclick="openModal('dsa-modal')">+ Add Problem</button>
+  </div>
+
+  <div class="stats-row" id="dsa-stats"></div>
+
+  <div class="two-col">
+    <div class="card chart-card">
+      <p class="card-title">Solved by Difficulty</p>
+      <canvas id="dsa-chart" height="200"></canvas>
+    </div>
+    <div class="card chart-card">
+      <p class="card-title">Problems by Topic</p>
+      <canvas id="topic-chart" height="200"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="table-toolbar">
+      <div class="filter-group">
+        <button class="filter-btn active" data-diff="All" onclick="filterDSA(this,'diff')">All</button>
+        <button class="filter-btn" data-diff="Easy" onclick="filterDSA(this,'diff')">Easy</button>
+        <button class="filter-btn" data-diff="Medium" onclick="filterDSA(this,'diff')">Medium</button>
+        <button class="filter-btn" data-diff="Hard" onclick="filterDSA(this,'diff')">Hard</button>
+      </div>
+      <select class="select-sm" id="topic-filter" onchange="renderDSATable()">
+        <option value="All">All Topics</option>
+        <option>Array</option><option>String</option><option>LinkedList</option>
+        <option>Stack</option><option>Queue</option><option>Tree</option>
+        <option>Graph</option><option>DP</option><option>Greedy</option>
+        <option>Binary Search</option><option>Backtracking</option><option>Heap</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Title</th><th>Platform</th><th>Difficulty</th><th>Topic</th><th>Status</th><th></th></tr></thead>
+        <tbody id="dsa-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ CONTESTS TAB -->
+<div id="tab-contests" class="tab-panel">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Contest Logger</h1>
+      <p class="page-sub" id="contest-sub">Loading...</p>
+    </div>
+    <button class="btn-primary" onclick="openModal('contest-modal')">+ Log Contest</button>
+  </div>
+
+  <div class="stats-row" id="contest-stats"></div>
+
+  <div class="card">
+    <p class="card-title">Rating Progress</p>
+    <canvas id="rating-chart" height="120"></canvas>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Contest</th><th>Platform</th><th>Date</th><th>Rank</th><th>Solved</th><th>Δ Rating</th><th></th></tr></thead>
+        <tbody id="contest-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ PIPELINE TAB -->
+<div id="tab-pipeline" class="tab-panel">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Company Pipeline</h1>
+      <p class="page-sub" id="pipeline-sub">Loading...</p>
+    </div>
+    <button class="btn-primary" onclick="openModal('pipeline-modal')">+ Add Application</button>
+  </div>
+
+  <div class="stats-row" id="pipeline-stats"></div>
+
+  <div class="kanban" id="kanban-board"></div>
+</div>
+
+<!-- ════════════════════════════════ NOTES TAB -->
+<div id="tab-notes" class="tab-panel">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Interview Notes</h1>
+      <p class="page-sub" id="notes-sub">Loading...</p>
+    </div>
+    <div style="display:flex;gap:8px">
+      <input class="search-input" id="notes-search" placeholder="Search company..." oninput="renderNotes()"/>
+      <button class="btn-primary" onclick="openModal('notes-modal')">+ Add Note</button>
+    </div>
+  </div>
+
+  <div class="stats-row" id="notes-stats"></div>
+  <div id="notes-list" class="notes-list"></div>
+</div>
+
+<!-- ════════════════ MODALS ════════════════ -->
+
+<!-- DSA Modal -->
+<div class="modal-overlay" id="dsa-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add DSA Problem</span><button class="modal-close" onclick="closeModal('dsa-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group col-2"><label>Title</label><input id="f-dsa-title" class="input" placeholder="Two Sum"/></div>
+        <div class="form-group"><label>Platform</label>
+          <select id="f-dsa-platform" class="input"><option>LeetCode</option><option>GeeksforGeeks</option><option>CodeChef</option><option>Codeforces</option></select>
+        </div>
+        <div class="form-group"><label>Difficulty</label>
+          <select id="f-dsa-diff" class="input"><option>Easy</option><option>Medium</option><option>Hard</option></select>
+        </div>
+        <div class="form-group"><label>Topic</label>
+          <select id="f-dsa-topic" class="input">
+            <option>Array</option><option>String</option><option>LinkedList</option><option>Stack</option>
+            <option>Queue</option><option>Tree</option><option>Graph</option><option>DP</option>
+            <option>Greedy</option><option>Binary Search</option><option>Backtracking</option><option>Heap</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Status</label>
+          <select id="f-dsa-status" class="input"><option>Solved</option><option>Revisit</option></select>
+        </div>
+        <div class="form-group col-2"><label>Link (optional)</label><input id="f-dsa-link" class="input" placeholder="https://leetcode.com/..."/></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn-primary" onclick="addDSA()">Save Problem</button><button class="btn-outline" onclick="closeModal('dsa-modal')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- Contest Modal -->
+<div class="modal-overlay" id="contest-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Log Contest</span><button class="modal-close" onclick="closeModal('contest-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group col-2"><label>Contest Name</label><input id="f-c-name" class="input" placeholder="Codeforces Round 950"/></div>
+        <div class="form-group"><label>Platform</label>
+          <select id="f-c-platform" class="input"><option>Codeforces</option><option>LeetCode</option><option>CodeChef</option><option>HackerRank</option></select>
+        </div>
+        <div class="form-group"><label>Date</label><input type="date" id="f-c-date" class="input"/></div>
+        <div class="form-group"><label>Rank</label><input type="number" id="f-c-rank" class="input" placeholder="1024"/></div>
+        <div class="form-group"><label>Total Participants</label><input type="number" id="f-c-total" class="input" placeholder="15000"/></div>
+        <div class="form-group"><label>Problems Solved</label><input type="number" id="f-c-solved" class="input" placeholder="3"/></div>
+        <div class="form-group"><label>Rating Change</label><input type="number" id="f-c-delta" class="input" placeholder="+45"/></div>
+        <div class="form-group"><label>New Rating</label><input type="number" id="f-c-rating" class="input" placeholder="1450"/></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn-primary" onclick="addContest()">Save Contest</button><button class="btn-outline" onclick="closeModal('contest-modal')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- Pipeline Modal -->
+<div class="modal-overlay" id="pipeline-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add Application</span><button class="modal-close" onclick="closeModal('pipeline-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Company</label><input id="f-p-company" class="input" placeholder="Google"/></div>
+        <div class="form-group"><label>Role</label><input id="f-p-role" class="input" placeholder="SDE Intern"/></div>
+        <div class="form-group"><label>Date Applied</label><input type="date" id="f-p-date" class="input"/></div>
+        <div class="form-group"><label>Status</label>
+          <select id="f-p-status" class="input"><option>Applied</option><option>OA</option><option>Interview</option><option>Offer</option><option>Rejected</option></select>
+        </div>
+        <div class="form-group col-2"><label>Job Link (optional)</label><input id="f-p-link" class="input" placeholder="https://..."/></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn-primary" onclick="addApplication()">Save Application</button><button class="btn-outline" onclick="closeModal('pipeline-modal')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- Notes Modal -->
+<div class="modal-overlay" id="notes-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add Interview Note</span><button class="modal-close" onclick="closeModal('notes-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Company</label><input id="f-n-company" class="input" placeholder="Amazon"/></div>
+        <div class="form-group"><label>Round</label>
+          <select id="f-n-round" class="input"><option>DSA</option><option>Technical</option><option>HR</option><option>System Design</option><option>Managerial</option></select>
+        </div>
+        <div class="form-group"><label>Date</label><input type="date" id="f-n-date" class="input"/></div>
+        <div class="form-group"><label>Outcome</label>
+          <select id="f-n-outcome" class="input"><option>Pending</option><option>Cleared</option><option>Rejected</option></select>
+        </div>
+        <div class="form-group col-2"><label>Notes</label><textarea id="f-n-notes" class="input" rows="4" placeholder="What was asked? How did it go?"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn-primary" onclick="addNote()">Save Note</button><button class="btn-outline" onclick="closeModal('notes-modal')">Cancel</button></div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
